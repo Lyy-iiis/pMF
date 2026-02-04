@@ -1,0 +1,8 @@
+**/__pycache__/
+./tmp
+tmp/
+
+# config
+config.sh
+
+.DS_Store
