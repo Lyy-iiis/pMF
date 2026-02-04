@@ -1,0 +1,38 @@
+model:
+    model_str: MiT_B_16 # specify model config
+
+    noise_scale: 1.0 # for pMF-B/16; 2.0 for pMF-B/32; 1.0 for pMF-L/16; 4.0 for pMF-L/32
+
+fid:
+    device_batch_size: 40
+    num_samples: 50000
+    
+    cache_ref: FID_CACHE_REF
+
+sampling:
+    # CFG scale, interval and ema recommended for provided pMF-B/16 checkpoint
+    # You can add more omega, intervals and emas to do a grid search
+    num_steps: 1
+    interval:
+        - [0.1, 0.7]
+    omegas: [8.5]
+    emas: [2000]
+
+    # For provided pMF checkpoints, use the following settings:
+    # interval: [0.1, 0.7], omegas: [6.5], emas: [2000] for pMF-B/32
+    # interval: [0.2, 0.7], omegas: [7.0], emas: [1000] for pMF-L/16
+    # interval: [0.2, 0.6], omegas: [7.5], emas: [2000] for pMF-L/32
+
+dataset:
+    image_size: 256 # specify dataset image size
+
+logging:
+    use_wandb: False # set to True to use wandb
+    wandb_project: 'YOUR PROJECT' # change to your wandb project
+    wandb_entity: 'YOUR ENTITY' # paste your wandb entity here
+    wandb_tags: # use your own tags
+        - 'YOUR TAGS'
+    wandb_notes: 'YOUR NOTES' # your wandb notes
+
+load_from: '' # path to load checkpoint
+eval_only: True # set to True for evaluation only
