@@ -12,7 +12,7 @@
 This is the official JAX implementation for the paper [One-step Latent-free Image Generation with Pixel Mean Flows](https://arxiv.org/abs/2601.22158). This code is written and tested on TPUs. 
 
 We provide HSDP training and inference code for pMF-H models in this branch. The non-HSDP code is provided in [this branch](https://github.com/Lyy-iiis/pMF).
-PyTorch implementation will be released soon.
+For PyTorch implementation, please refer to [this branch](https://github.com/Lyy-iiis/pMF/tree/torch).
 
 ## Initialization
 
