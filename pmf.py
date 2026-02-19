@@ -2,15 +2,26 @@ import flax.linen as nn
 import jax
 import jax.numpy as jnp
 
-from models import mit
+from models import pmfDiT
 from jax.sharding import NamedSharding, PartitionSpec as P
 from utils.hsdp_util import MESH, AXIS_NAMES
 
-def generate(variable, model, rng, n_sample, config, 
-             num_steps, omega, t_min, t_max, sample_idx=None):
+
+def generate(
+    variable,
+    model,
+    rng,
+    n_sample,
+    config,
+    num_steps,
+    omega,
+    t_min,
+    t_max,
+    sample_idx=None,
+):
     """
     Generate samples from the model
-    
+
     Args:
         variable: Model parameters.
         model: pixelMeanFlow model.
@@ -32,12 +43,14 @@ def generate(variable, model, rng, n_sample, config,
     rng, rng_xt, rng_sample = jax.random.split(rng, 3)
 
     z_t = jax.random.normal(rng_xt, x_shape, dtype=model.dtype) * model.noise_scale
-    z_t = jax.lax.with_sharding_constraint(z_t,
-        NamedSharding(MESH, P(AXIS_NAMES, None, None, None))
+    z_t = jax.lax.with_sharding_constraint(
+        z_t, NamedSharding(MESH, P(AXIS_NAMES, None, None, None))
     )
 
     if sample_idx is not None:
-        assert sample_idx.shape[0] == jax.device_count(), f'sample_idx shape {sample_idx.shape} does not match device count {jax.device_count()}'
+        assert (
+            sample_idx.shape[0] == jax.device_count()
+        ), f"sample_idx shape {sample_idx.shape} does not match device count {jax.device_count()}"
         all_y = jnp.arange(n_sample, dtype=jnp.int32).reshape(-1, 1)
         y = all_y + sample_idx * n_sample
         y = y % num_classes
@@ -45,15 +58,30 @@ def generate(variable, model, rng, n_sample, config,
     else:
         raise NotImplementedError
 
-    y = jax.lax.with_sharding_constraint(y,
-        NamedSharding(MESH, P(AXIS_NAMES,))
+    y = jax.lax.with_sharding_constraint(
+        y,
+        NamedSharding(
+            MESH,
+            P(
+                AXIS_NAMES,
+            ),
+        ),
     )
 
     t_steps = jnp.linspace(1.0, 0.0, num_steps + 1)
 
     def step_fn(i, x_i):
-        return model.apply(variable, x_i, y, i, t_steps,
-            omega, t_min, t_max, method=model.sample_one_step)
+        return model.apply(
+            variable,
+            x_i,
+            y,
+            i,
+            t_steps,
+            omega,
+            t_min,
+            t_max,
+            method=model.sample_one_step,
+        )
 
     images = jax.lax.fori_loop(0, num_steps, step_fn, z_t)
 
@@ -99,8 +127,8 @@ class pixelMeanFlow(nn.Module):
         """
         Setup pixel MeanFlow model.
         """
-        net_fn = getattr(mit, self.model_str)
-        self.net: mit.MiT = net_fn(
+        net_fn = getattr(pmfDiT, self.model_str)
+        self.net: pmfDiT.pmfDiT = net_fn(
             name="net", num_classes=self.num_classes, eval=self.eval
         )
 
@@ -153,15 +181,26 @@ class pixelMeanFlow(nn.Module):
 
         if self.tr_uniform:
             # 10% random tr samples
-            unif_mask = jax.random.uniform(
-                self.make_rng("gen"), (bz, 1, 1, 1), dtype=self.dtype
-            ) < 0.1
-            t = jnp.where(unif_mask, jax.random.uniform(
-                self.make_rng("gen"), (bz, 1, 1, 1), dtype=self.dtype
-            ), t)
-            r = jnp.where(unif_mask, jax.random.uniform(
-                self.make_rng("gen"), (bz, 1, 1, 1), dtype=self.dtype
-            ), r)
+            unif_mask = (
+                jax.random.uniform(
+                    self.make_rng("gen"), (bz, 1, 1, 1), dtype=self.dtype
+                )
+                < 0.1
+            )
+            t = jnp.where(
+                unif_mask,
+                jax.random.uniform(
+                    self.make_rng("gen"), (bz, 1, 1, 1), dtype=self.dtype
+                ),
+                t,
+            )
+            r = jnp.where(
+                unif_mask,
+                jax.random.uniform(
+                    self.make_rng("gen"), (bz, 1, 1, 1), dtype=self.dtype
+                ),
+                r,
+            )
 
         data_size = int(bz * self.data_proportion)
         fm_mask = jnp.arange(bz) < data_size
@@ -180,7 +219,7 @@ class pixelMeanFlow(nn.Module):
             ukey, (bz, 1, 1, 1), minval=0.0, maxval=1.0, dtype=jnp.float32
         )
 
-        if self.cfg_beta == 1.0: # special case for \int 1/x
+        if self.cfg_beta == 1.0:  # special case for \int 1/x
             s = jnp.exp(u * jnp.log1p(jnp.asarray(s_max, jnp.float32)))
         else:
             smax = jnp.asarray(s_max, jnp.float32)
@@ -251,7 +290,7 @@ class pixelMeanFlow(nn.Module):
             t: Current time step.
             omega: CFG scale.
             y: Class labels.
-        
+
         Returns:
             v: Predicted v component.
         """
@@ -353,7 +392,7 @@ class pixelMeanFlow(nn.Module):
         v_g = v_t + (1 - 1 / w) * (v_c - v_u)
 
         # For flow matching samples, there is no CFG interval
-        v_g = jnp.where(fm_mask, v_g_fm, v_g) 
+        v_g = jnp.where(fm_mask, v_g_fm, v_g)
 
         return v_g, v_c
 
@@ -368,7 +407,7 @@ class pixelMeanFlow(nn.Module):
         Args:
             images: A batch of images, shape (B, H, W, C).
             labels: Corresponding class labels, shape (B,).
-        
+
         Returns:
             loss: Scalar loss value.
             dict_losses: Dictionary of individual loss components.
@@ -384,8 +423,8 @@ class pixelMeanFlow(nn.Module):
         rng, rng_used2 = jax.random.split(rng)
 
         e = jax.random.normal(rng_used1, x.shape, dtype=self.dtype) * self.noise_scale
-        e = jax.lax.with_sharding_constraint(e,
-            NamedSharding(MESH, P(AXIS_NAMES, None, None, None))
+        e = jax.lax.with_sharding_constraint(
+            e, NamedSharding(MESH, P(AXIS_NAMES, None, None, None))
         )
         z_t = (1 - t) * x + t * e
         v_t = (z_t - x) / jnp.clip(t.reshape((-1, 1, 1, 1)), 0.05, 1.0)
@@ -435,14 +474,19 @@ class pixelMeanFlow(nn.Module):
 
             pred_x = z_t - t * u
 
-            aux_loss_lpips, aux_loss_convnext = aux_fn(pred_x, x, rng_used2)  # shape (B,)
+            aux_loss_lpips, aux_loss_convnext = aux_fn(
+                pred_x, x, rng_used2
+            )  # shape (B,)
 
             mask = t.flatten() < self.perceptual_max_t
 
             aux_loss_lpips = jnp.where(mask, aux_loss_lpips, 0.0)
             aux_loss_convnext = jnp.where(mask, aux_loss_convnext, 0.0)
-            
-            aux_loss = adp_wt_fn(aux_loss_lpips) * self.lpips_lambda + adp_wt_fn(aux_loss_convnext) * self.convnext_lambda
+
+            aux_loss = (
+                adp_wt_fn(aux_loss_lpips) * self.lpips_lambda
+                + adp_wt_fn(aux_loss_convnext) * self.convnext_lambda
+            )
         else:
             aux_loss = aux_loss_lpips = aux_loss_convnext = 0.0
 

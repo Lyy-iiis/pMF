@@ -134,9 +134,8 @@ class FinalLayer(nn.Module):
 #################################################################################
 
 
-class MiT(nn.Module):
+class pmfDiT(nn.Module):
     """
-    MeanFlow improved Transformer (MiT).
     A shared backbone processes the first (depth - aux_head_depth) layers.
     Two heads of equal depth (aux_head_depth) branch off afterwards.
     """
@@ -165,7 +164,7 @@ class MiT(nn.Module):
 
     def setup(self):
         """
-        Set up the MiT model components.
+        Set up the pmfDiT model components.
          - Patch embedder for input images.
          - Embedders for time, omega, cfg intervals, and class labels.
          - Learnable tokens for conditioning.
@@ -339,7 +338,7 @@ class MiT(nn.Module):
 
     def __call__(self, x, t, h, w, t_min, t_max, y):
         """
-        Forward pass of the MiT model.
+        Forward pass of the pmfDiT model.
         Returns the predicted u and v components.
 
         Args:
@@ -414,8 +413,8 @@ def apply_rotary_pos_emb(x, freqs_cis):
 #                                   pMF Configs                                 #
 #################################################################################
 
-MiT_B_16 = partial(
-    MiT,
+pmfDiT_B_16 = partial(
+    pmfDiT,
     input_size=256,
     depth=16,
     hidden_size=768,
@@ -425,8 +424,8 @@ MiT_B_16 = partial(
 )
 
 
-MiT_B_32 = partial(
-    MiT,
+pmfDiT_B_32 = partial(
+    pmfDiT,
     input_size=512,
     depth=16,
     hidden_size=768,
@@ -435,8 +434,8 @@ MiT_B_32 = partial(
     aux_head_depth=8,
 )
 
-MiT_L_16 = partial(
-    MiT,
+pmfDiT_L_16 = partial(
+    pmfDiT,
     input_size=256,
     depth=32,
     hidden_size=1024,
@@ -445,8 +444,8 @@ MiT_L_16 = partial(
     aux_head_depth=8,
 )
 
-MiT_L_32 = partial(
-    MiT,
+pmfDiT_L_32 = partial(
+    pmfDiT,
     input_size=512,
     depth=32,
     hidden_size=1024,
@@ -455,8 +454,8 @@ MiT_L_32 = partial(
     aux_head_depth=8,
 )
 
-MiT_H_16 = partial(
-    MiT,
+pmfDiT_H_16 = partial(
+    pmfDiT,
     input_size=256,
     depth=48,
     hidden_size=1280,
@@ -465,8 +464,8 @@ MiT_H_16 = partial(
     aux_head_depth=8,
 )
 
-MiT_H_32 = partial(
-    MiT,
+pmfDiT_H_32 = partial(
+    pmfDiT,
     input_size=512,
     depth=48,
     hidden_size=1280,

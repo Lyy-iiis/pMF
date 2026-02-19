@@ -191,7 +191,7 @@ training:
     num_epochs: 80                  # Train for fewer epochs
 
 model:
-    model_str: MiT_B_16               # Use pMF-B/16 model
+    model_str: pmfDiT_B_16               # Use pMF-B/16 model
     noise_scale: 1.0                 # Set noise scale
 ```
 
