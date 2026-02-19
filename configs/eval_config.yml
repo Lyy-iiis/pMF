@@ -1,5 +1,5 @@
 model:
-    model_str: MiT_B_16 # specify model config
+    model_str: pmfDiT_B_16 # specify model config
 
     noise_scale: 1.0 # for pMF-B/16; 2.0 for pMF-B/32; 1.0 for pMF-L/16; 4.0 for pMF-L/32
 

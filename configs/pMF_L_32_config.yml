@@ -2,7 +2,7 @@ dataset:
     root: DATA_ROOT
 
 model:
-    model_str: MiT_L_32
+    model_str: pmfDiT_L_32
     cfg_beta: 1.0
 
     P_mean: 0.0
