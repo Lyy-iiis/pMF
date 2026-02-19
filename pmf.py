@@ -2,7 +2,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-from models import mit
+from models import pmfDiT
 
 class pixelMeanFlow(nn.Module):
     """pixel MeanFlow"""
@@ -26,8 +26,8 @@ class pixelMeanFlow(nn.Module):
         assert eval, f'The current codebase only supports inference mode'
         
         
-        net_fn = getattr(mit, self.model_str)
-        self.net: mit.MiT = net_fn(
+        net_fn = getattr(pmfDiT, self.model_str)
+        self.net: pmfDiT.pmfDiT = net_fn(
             input_size=self.img_size, 
             in_channels=self.img_channels,
             num_classes=self.num_classes, 
@@ -36,12 +36,12 @@ class pixelMeanFlow(nn.Module):
 
         # noise scaling
         self.noise_scale = {
-            'MiT_B_16': 1.0,
-            'MiT_B_32': 2.0,
-            'MiT_L_16': 1.0,
-            'MiT_L_32': 4.0,
-            'MiT_H_16': 2.0,
-            'MiT_H_32': 4.0,
+            'pmfDiT_B_16': 1.0,
+            'pmfDiT_B_32': 2.0,
+            'pmfDiT_L_16': 1.0,
+            'pmfDiT_L_32': 4.0,
+            'pmfDiT_H_16': 2.0,
+            'pmfDiT_H_32': 4.0,
         }[model_str]
 
     #######################################################

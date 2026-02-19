@@ -133,9 +133,9 @@ def get_args_parser():
                         help='Path to checkpoint to resume training', required=True)
 
     # architecture
-    parser.add_argument('--model', default='MiT_B_16', type=str, metavar='MODEL',
+    parser.add_argument('--model', default='pmfDiT_B_16', type=str, metavar='MODEL',
                         help='Name of the model to train',
-                        choices=['MiT_B_16', 'MiT_B_32', 'MiT_L_16', 'MiT_L_32', 'MiT_H_16', 'MiT_H_32'])
+                        choices=['pmfDiT_B_16', 'pmfDiT_B_32', 'pmfDiT_L_16', 'pmfDiT_L_32', 'pmfDiT_H_16', 'pmfDiT_H_32'])
     
     # sampling
     parser.add_argument('--sample-seed', default=42, type=int,

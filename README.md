@@ -69,7 +69,7 @@ To generate a batch of 512x512 images using the pMF-H/32 model (for visualizatio
 python evaluate.py sample \
 --ckpt-path /path/to/H/32/checkpoint.pth \
 --workdir ./visualize \
---model MiT_H_32 \
+--model pmfDiT_H_32 \
 ```
 
 To evaluate the FID of the pMF-B/16 model on ImageNet 256x256, run:
@@ -86,7 +86,7 @@ To evaluate the FID of the pMF-L/16 model on ImageNet 256x256, run:
 torchrun --nproc-per-node=8 evaluate.py evaluate \
 --ckpt-path /path/to/L/16/checkpoint.pth \
 --workdir ./l16_fid_output \
---model MiT_L_16 \
+--model pmfDiT_L_16 \
 --cfg-omega 7.0 \
 --interval-min 0.2 \
 --interval-max 0.7
@@ -98,7 +98,7 @@ To evaluate the FID of the pMF-H/16 model on ImageNet 256x256, run:
 torchrun --nproc-per-node=8 evaluate.py evaluate \
 --ckpt-path /path/to/H/16/checkpoint.pth \
 --workdir ./h16_fid_output \
---model MiT_H_16 \
+--model pmfDiT_H_16 \
 --cfg-omega 7.0 \
 --interval-min 0.2 \
 --interval-max 0.6
@@ -110,7 +110,7 @@ To evaluate the FID of the pMF-B/32 model on ImageNet 512x512, run:
 torchrun --nproc-per-node=8 evaluate.py evaluate \
 --ckpt-path /path/to/B/32/checkpoint.pth \
 --workdir ./b32_fid_output \
---model MiT_B_32 \
+--model pmfDiT_B_32 \
 --cfg-omega 6.5 \
 --interval-min 0.1 \
 --interval-max 0.7
@@ -122,7 +122,7 @@ To evaluate the FID of the pMF-L/32 model on ImageNet 512x512, run:
 torchrun --nproc-per-node=8 evaluate.py evaluate \
 --ckpt-path /path/to/L/32/checkpoint.pth \
 --workdir ./l32_fid_output \
---model MiT_L_32 \
+--model pmfDiT_L_32 \
 --cfg-omega 7.5 \
 --interval-min 0.2 \
 --interval-max 0.6
@@ -134,7 +134,7 @@ To evaluate the FID of the pMF-H/32 model on ImageNet 512x512, run:
 torchrun --nproc-per-node=8 evaluate.py evaluate \
 --ckpt-path /path/to/H/32/checkpoint.pth \
 --workdir ./h32_fid_output \
---model MiT_H_32 \
+--model pmfDiT_H_32 \
 --cfg-omega 5.5 \
 --interval-min 0.1 \
 --interval-max 0.6
