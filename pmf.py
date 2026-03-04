@@ -102,7 +102,8 @@ class pixelMeanFlow(nn.Module):
     convnext_lambda: float = 0.0
     perceptual_max_t: float = 1.0
 
-    tr_uniform: float = False
+    tr_uniform: bool = False
+    # FIX: `tr_uniform` is a boolean feature flag (not a float) to avoid config misuse.
 
     def setup(self):
         """
@@ -162,15 +163,15 @@ class pixelMeanFlow(nn.Module):
 
         if self.tr_uniform:
             # 10% random tr samples
-            unif_mask = jax.random.uniform(
-                self.make_rng("gen"), (bz, 1, 1, 1), dtype=self.dtype
-            ) < 0.1
-            t = jnp.where(unif_mask, jax.random.uniform(
-                self.make_rng("gen"), (bz, 1, 1, 1), dtype=self.dtype
-            ), t)
-            r = jnp.where(unif_mask, jax.random.uniform(
-                self.make_rng("gen"), (bz, 1, 1, 1), dtype=self.dtype
-            ), r)
+            # FIX: split a single RNG key to make randomness explicit/stable.
+            rng_mask, rng_t, rng_r = jax.random.split(self.make_rng("gen"), 3)
+            unif_mask = (
+                jax.random.uniform(rng_mask, (bz, 1, 1, 1), dtype=self.dtype) < 0.1
+            )
+            t_unif = jax.random.uniform(rng_t, (bz, 1, 1, 1), dtype=self.dtype)
+            r_unif = jax.random.uniform(rng_r, (bz, 1, 1, 1), dtype=self.dtype)
+            t = jnp.where(unif_mask, t_unif, t)
+            r = jnp.where(unif_mask, r_unif, r)
 
         data_size = int(bz * self.data_proportion)
         fm_mask = jnp.arange(bz) < data_size
@@ -318,18 +319,12 @@ class pixelMeanFlow(nn.Module):
         """
         bz = v_t.shape[0]
 
-        rand_mask = (
-            jax.random.uniform(self.make_rng("gen"), shape=(bz,))
-            < self.class_dropout_prob
-        )
-        num_drop = jnp.sum(rand_mask).astype(jnp.int32)
-        drop_mask = jnp.arange(bz)[:, None, None, None] < num_drop
+        # FIX: use a per-sample Bernoulli mask; do not drop the first `num_drop` samples.
+        rng = self.make_rng("gen")
+        rand_mask = jax.random.uniform(rng, shape=(bz,)) < self.class_dropout_prob
+        drop_mask = rand_mask[:, None, None, None]
 
-        labels = jnp.where(
-            drop_mask.reshape(bz),
-            self.num_classes,
-            labels,
-        )
+        labels = jnp.where(rand_mask, self.num_classes, labels)
         v_g = jnp.where(drop_mask, v_t, v_g)
 
         return labels, v_g
